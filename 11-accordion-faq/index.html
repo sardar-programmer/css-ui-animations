@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accordion FAQ</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #E8E3FF;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  .faq {
+    width: 90%;
+    max-width: 420px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .item {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+  }
+
+  .item.active {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+  }
+
+  .question {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .icon {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .icon::before,
+  .icon::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 2px;
+    background: #2BB88A;
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    transition: transform 0.3s ease;
+  }
+
+  .icon::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  .item.active .icon::after {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+
+  .answer {
+    height: 0;
+    overflow: hidden;
+    transition: height 0.35s ease;
+  }
+
+  .answer p {
+    padding: 0 20px 18px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<div class="faq">
+
+  <div class="item">
+    <button class="question" aria-expanded="false">
+      What is CSS?
+      <span class="icon"></span>
+    </button>
+    <div class="answer">
+      <p>CSS stands for Cascading Style Sheets. It controls how HTML elements look: colors, spacing, fonts and animations.</p>
+    </div>
+  </div>
+
+  <div class="item">
+    <button class="question" aria-expanded="false">
+      What is a CSS transition?
+      <span class="icon"></span>
+    </button>
+    <div class="answer">
+      <p>A transition smoothly changes a property from one value to another over a set time, instead of switching instantly.</p>
+    </div>
+  </div>
+
+  <div class="item">
+    <button class="question" aria-expanded="false">
+      Why use JavaScript here?
+      <span class="icon"></span>
+    </button>
+    <div class="answer">
+      <p>JavaScript listens for the click, then opens one answer and closes the others by changing its height.</p>
+    </div>
+  </div>
+
+  <div class="item">
+    <button class="question" aria-expanded="false">
+      Can I use this in my project?
+      <span class="icon"></span>
+    </button>
+    <div class="answer">
+      <p>Yes! Copy the code, change the questions and answers, and adjust the colors to match your design.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const items = document.querySelectorAll(".item");
+
+  items.forEach((item) => {
+    const button = item.querySelector(".question");
+    const answer = item.querySelector(".answer");
+
+    button.addEventListener("click", () => {
+      const isOpen = item.classList.contains("active");
+
+      items.forEach((other) => {
+        other.classList.remove("active");
+        other.querySelector(".answer").style.height = "0px";
+        other.querySelector(".question").setAttribute("aria-expanded", "false");
+      });
+
+      if (!isOpen) {
+        item.classList.add("active");
+        answer.style.height = answer.scrollHeight + "px";
+        button.setAttribute("aria-expanded", "true");
+      }
+    });
+  });
+
+  // open the first item by default
+  items[0].querySelector(".question").click();
+</script>
+
+</body>
+</html>
