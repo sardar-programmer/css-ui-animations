@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animated Dropdown Menu with Bracey</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #17142B;
+    font-family: "Segoe UI", sans-serif;
+  }
+
+  /* ---------- 9:16 stage (everything scales with its width) ---------- */
+  .stage {
+    position: relative;
+    width: min(100vw, calc(100vh * 9 / 16));
+    height: min(100vh, calc(100vw * 16 / 9));
+    container-type: size;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 30%, #F3F0FF 0%, #E8E3FF 55%, #D9D2FA 100%);
+  }
+
+  /* ---------- app card ---------- */
+  .app {
+    position: absolute;
+    top: 9cqw;
+    left: 8cqw;
+    right: 8cqw;
+    height: 108cqw;
+    padding: 8cqw 6cqw;
+    border-radius: 7cqw;
+    background: #fff;
+    box-shadow: 0 2cqw 6cqw rgba(60, 40, 120, 0.12);
+    text-align: center;
+  }
+
+  .tag {
+    font-size: 3.6cqw;
+    font-weight: 700;
+    letter-spacing: 0.5cqw;
+    text-transform: uppercase;
+    color: #2BB88A;
+  }
+
+  .app h1 {
+    margin-top: 1cqw;
+    font-size: 8.5cqw;
+    color: #222;
+  }
+
+  .hint {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 12cqw;
+    font-size: 3.8cqw;
+    color: #9A94B8;
+  }
+
+  /* ---------- dropdown ---------- */
+  .dropdown {
+    position: relative;
+    margin-top: 8cqw;
+    text-align: left;
+  }
+
+  .trigger {
+    width: 100%;
+    height: 15cqw;
+    display: flex;
+    align-items: center;
+    gap: 3cqw;
+    padding: 0 5cqw;
+    border: 0.5cqw solid #E2DCFF;
+    border-radius: 5cqw;
+    background: #F7F5FF;
+    color: #2A2548;
+    font-size: 4.8cqw;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+  }
+
+  .trigger:hover,
+  .dropdown.open .trigger {
+    border-color: #2BB88A;
+    background: #fff;
+  }
+
+  .trigger.pressed {
+    transform: scale(0.96);
+  }
+
+  .trigger .label {
+    flex: 1;
+  }
+
+  .trigger .label small {
+    display: block;
+    font-size: 3.2cqw;
+    font-weight: 500;
+    color: #9A94B8;
+  }
+
+  .chevron {
+    width: 5.5cqw;
+    height: 5.5cqw;
+    fill: none;
+    stroke: #2BB88A;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .dropdown.open .chevron {
+    transform: rotate(180deg);
+  }
+
+  .menu {
+    position: absolute;
+    top: calc(100% + 2.5cqw);
+    left: 0;
+    right: 0;
+    z-index: 8;
+    list-style: none;
+    padding: 2cqw;
+    border-radius: 5cqw;
+    background: #fff;
+    box-shadow: 0 3cqw 9cqw rgba(60, 40, 120, 0.22), 0 0 0 0.4cqw #EEE9FF;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4cqw) scale(0.94);
+    transform-origin: 50% 0;
+    transition: opacity 0.2s ease,
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                visibility 0s linear 0.35s;
+  }
+
+  .dropdown.open .menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    transition-delay: 0s;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 3.5cqw;
+    height: 12.5cqw;
+    padding: 0 3.5cqw;
+    border-radius: 3.5cqw;
+    color: #3A3560;
+    font-size: 4.4cqw;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-2.5cqw);
+    transition: opacity 0.25s ease,
+                transform 0.3s ease,
+                background 0.2s ease,
+                color 0.2s ease;
+  }
+
+  /* items drop in one after another */
+  .dropdown.open .item {
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: calc(var(--i) * 55ms + 80ms), calc(var(--i) * 55ms + 80ms), 0s, 0s;
+  }
+
+  .item svg {
+    width: 5.6cqw;
+    height: 5.6cqw;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .item:hover,
+  .item.hot {
+    background: #F1EEFF;
+    color: #1F7A5C;
+  }
+
+  .item.selected {
+    background: #E3FAF1;
+    color: #1F7A5C;
+  }
+
+  .item .tick {
+    margin-left: auto;
+    opacity: 0;
+    transform: scale(0.4);
+    transition: opacity 0.2s ease, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .item.selected .tick {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+/* ---------- Bracey ---------- */
+  .bracey {
+    position: absolute;
+    left: 50%;
+    bottom: 6cqw;
+    width: 60cqw;
+    height: auto;
+    margin-left: -30cqw;
+    z-index: 12;
+    overflow: visible;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .body-group {
+    transform-origin: 150px 292px;
+    animation: bob 2.4s ease-in-out infinite;
+  }
+
+  .shadow {
+    transform-origin: 150px 297px;
+    animation: shadow 2.4s ease-in-out infinite;
+  }
+
+  .arm-left {
+    transform-origin: 68px 112px;
+    animation: sway 3s ease-in-out infinite;
+  }
+
+  .arm-right {
+    transform-origin: 232px 112px;
+    animation: sway 3s ease-in-out infinite reverse;
+  }
+
+  .antenna-dot {
+    transform-origin: 150px 42px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+
+  .badge-text {
+    animation: glow 2.4s ease-in-out infinite;
+  }
+
+  .eye {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 0.12s ease;
+  }
+
+  .eyes-happy,
+  .m-grin,
+  .m-o {
+    display: none;
+  }
+
+  .bracey.is-happy .eyes,
+  .bracey.is-happy .m-smile {
+    display: none;
+  }
+
+  .bracey.is-happy .eyes-happy,
+  .bracey.is-happy .m-grin {
+    display: inline;
+  }
+
+  .bracey.is-surprised .m-smile {
+    display: none;
+  }
+
+  .bracey.is-surprised .m-o {
+    display: inline;
+  }
+
+  .bracey.is-surprised .eye {
+    transform: scale(1.25);
+  }
+
+  .bracey.is-blink .eye {
+    transform: scaleY(0.1);
+  }
+
+  .bracey.is-happy .body-group {
+    animation: jump 0.7s ease-in-out 2;
+  }
+
+  .bracey.is-wave .arm-right {
+    animation: wave 0.6s ease-in-out 3;
+  }
+
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-6px); }
+  }
+
+  @keyframes shadow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(0.9); opacity: 0.75; }
+  }
+
+  @keyframes sway {
+    0%, 100% { transform: rotate(3deg); }
+    50%      { transform: rotate(-3deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.3); opacity: 0.7; }
+  }
+
+  @keyframes glow {
+    0%, 100% { opacity: 0.85; }
+    50%      { opacity: 1; }
+  }
+
+  @keyframes jump {
+    0%   { transform: translateY(0) scale(1, 1); }
+    15%  { transform: translateY(0) scale(1.06, 0.92); }
+    50%  { transform: translateY(-30px) scale(0.97, 1.04); }
+    85%  { transform: translateY(0) scale(1.05, 0.94); }
+    100% { transform: translateY(0) scale(1, 1); }
+  }
+
+  @keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    50%      { transform: rotate(-32deg); }
+  }
+
+  /* a bit smaller, so the open menu never touches Bracey */
+  .bracey {
+    bottom: 3cqw;
+    width: 50cqw;
+    margin-left: -25cqw;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <main class="app">
+    <p class="tag">Episode 15</p>
+    <h1>Dropdown Menu</h1>
+
+    <div class="dropdown" id="dropdown">
+      <button class="trigger" id="trigger" aria-haspopup="listbox" aria-expanded="false">
+        <span class="label"><small>Account</small><span id="current">Choose an option</span></span>
+        <svg class="chevron" viewBox="0 0 24 24"><path d="M5 9l7 7 7-7"/></svg>
+      </button>
+
+      <ul class="menu" id="menu" role="listbox">
+        <li class="item" style="--i:0" role="option" data-value="Profile">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-4 3.8-6 7.5-6s6.7 2 7.5 6"/></svg>
+          Profile
+          <svg class="tick" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </li>
+        <li class="item" style="--i:1" role="option" data-value="Messages">
+          <svg viewBox="0 0 24 24"><path d="M4 6.5h16v10H9.5L5.5 20v-3.5H4z"/></svg>
+          Messages
+          <svg class="tick" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </li>
+        <li class="item" style="--i:2" role="option" data-value="Settings">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/></svg>
+          Settings
+          <svg class="tick" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </li>
+        <li class="item" style="--i:3" role="option" data-value="Log out">
+          <svg viewBox="0 0 24 24"><path d="M10 4.5H5v15h5"/><path d="M14 8l4 4-4 4M18 12H9.5"/></svg>
+          Log out
+          <svg class="tick" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+        </li>
+      </ul>
+    </div>
+
+    <p class="hint">Tap the menu to open it</p>
+  </main>
+
+  <svg id="bracey" class="bracey" viewBox="0 0 300 330" role="img" aria-label="Bracey, a friendly mint green mascot">
+      <defs>
+        <linearGradient id="bodyGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#A6F3D3"/>
+          <stop offset="1" stop-color="#55C49B"/>
+        </linearGradient>
+        <linearGradient id="screenGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#21443C"/>
+          <stop offset="1" stop-color="#0F211D"/>
+        </linearGradient>
+        <linearGradient id="shoeGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#FFFFFF"/>
+          <stop offset="1" stop-color="#DAD6F0"/>
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="2.2" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+  
+      <ellipse class="shadow" cx="150" cy="297" rx="74" ry="9" fill="#000" fill-opacity="0.14"/>
+  
+      <g class="body-group">
+  
+        <line x1="150" y1="70" x2="150" y2="50" stroke="#1F7A5C" stroke-width="5" stroke-linecap="round"/>
+        <circle class="antenna-dot" cx="150" cy="42" r="8" fill="#FFE08A" filter="url(#glow)"/>
+  
+        <rect x="112" y="238" width="22" height="42" rx="10" fill="#1F7A5C"/>
+        <rect x="166" y="238" width="22" height="42" rx="10" fill="#1F7A5C"/>
+        <ellipse cx="121" cy="284" rx="25" ry="11" fill="url(#shoeGrad)"/>
+        <ellipse cx="179" cy="284" rx="25" ry="11" fill="url(#shoeGrad)"/>
+        <path d="M98 288 Q121 296 144 288" fill="none" stroke="#B9B4DD" stroke-width="2" stroke-linecap="round"/>
+        <path d="M156 288 Q179 296 202 288" fill="none" stroke="#B9B4DD" stroke-width="2" stroke-linecap="round"/>
+  
+        <g class="arm-left">
+          <path d="M68 112 Q46 112 46 134 V160 Q46 178 28 178 Q46 178 46 196 V220 Q46 242 68 242"
+                fill="none" stroke="#1F7A5C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <g class="arm-right">
+          <path d="M232 112 Q254 112 254 134 V160 Q254 178 272 178 Q254 178 254 196 V220 Q254 242 232 242"
+                fill="none" stroke="#1F7A5C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+  
+        <rect x="65" y="70" width="170" height="175" rx="52" fill="url(#bodyGrad)"/>
+        <path d="M65 190 Q65 245 117 245 H183 Q235 245 235 190 Q150 222 65 190 Z" fill="#4DB992" fill-opacity="0.55"/>
+        <ellipse cx="100" cy="88" rx="22" ry="8" fill="#FFFFFF" fill-opacity="0.5" transform="rotate(-22 100 88)"/>
+  
+        <rect x="82" y="88" width="136" height="92" rx="30" fill="url(#screenGrad)"/>
+        <path d="M96 100 Q112 94 128 100" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="4" stroke-linecap="round"/>
+  
+        <g class="eyes" filter="url(#glow)">
+          <g class="eye">
+            <circle cx="122" cy="128" r="13" fill="#CFFFEA"/>
+            <g class="pupil">
+              <circle cx="122" cy="128" r="6" fill="#12332C"/>
+              <circle cx="119.5" cy="125.5" r="2" fill="#FFFFFF"/>
+            </g>
+          </g>
+          <g class="eye">
+            <circle cx="178" cy="128" r="13" fill="#CFFFEA"/>
+            <g class="pupil">
+              <circle cx="178" cy="128" r="6" fill="#12332C"/>
+              <circle cx="175.5" cy="125.5" r="2" fill="#FFFFFF"/>
+            </g>
+          </g>
+        </g>
+  
+        <g class="eyes-happy" filter="url(#glow)" fill="none" stroke="#CFFFEA" stroke-width="5" stroke-linecap="round">
+          <path d="M108 132 Q122 114 136 132"/>
+          <path d="M164 132 Q178 114 192 132"/>
+        </g>
+  
+        <circle cx="98" cy="156" r="7" fill="#FF9EB5" fill-opacity="0.75"/>
+        <circle cx="202" cy="156" r="7" fill="#FF9EB5" fill-opacity="0.75"/>
+  
+        <path class="m-smile" d="M136 152 Q150 166 164 152" fill="none" stroke="#CFFFEA" stroke-width="4.5" stroke-linecap="round" filter="url(#glow)"/>
+        <g class="m-grin">
+          <path d="M133 150 Q150 180 167 150 Z" fill="#CFFFEA"/>
+          <ellipse cx="150" cy="164" rx="8" ry="4" fill="#FF9EB5"/>
+        </g>
+        <ellipse class="m-o" cx="150" cy="160" rx="6" ry="8" fill="none" stroke="#CFFFEA" stroke-width="4.5" filter="url(#glow)"/>
+  
+        <rect x="116" y="196" width="68" height="34" rx="12" fill="#3FA982" fill-opacity="0.45"/>
+        <text class="badge-text" x="150" y="220" text-anchor="middle" font-family="Consolas, Menlo, monospace" font-size="20" font-weight="700" fill="#17503D">&lt;/&gt;</text>
+  
+      </g>
+    </svg>
+
+</div>
+
+<script>
+  const bracey = document.getElementById("bracey");
+  const pupils = document.querySelectorAll(".pupil");
+  const dropdown = document.getElementById("dropdown");
+  const trigger = document.getElementById("trigger");
+  const current = document.getElementById("current");
+  const items = document.querySelectorAll(".item");
+  let moodTimer;
+  let demoRunning = false;
+
+  /* ---------- Bracey moods ---------- */
+  function setMood(mood, duration = 1500) {
+    bracey.classList.remove("is-happy", "is-surprised", "is-wave");
+    bracey.getBoundingClientRect(); // restart the animations
+
+    if (mood === "happy") bracey.classList.add("is-happy", "is-wave");
+    if (mood === "surprised") bracey.classList.add("is-surprised");
+    if (mood === "wave") bracey.classList.add("is-wave");
+
+    clearTimeout(moodTimer);
+    moodTimer = setTimeout(() => {
+      bracey.classList.remove("is-happy", "is-surprised", "is-wave");
+    }, duration);
+  }
+
+  /* ---------- eyes look at a point ---------- */
+  function lookAt(clientX, clientY) {
+    const box = bracey.getBoundingClientRect();
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height * 0.4;
+    const dx = clientX - cx;
+    const dy = clientY - cy;
+    const dist = Math.hypot(dx, dy) || 1;
+    const strength = (Math.min(dist, 140) / 140) * 5;
+    const x = (dx / dist) * strength;
+    const y = (dy / dist) * strength;
+
+    pupils.forEach((pupil) => {
+      pupil.setAttribute("transform", "translate(" + x.toFixed(2) + " " + y.toFixed(2) + ")");
+    });
+  }
+
+  function lookAtElement(el) {
+    const r = el.getBoundingClientRect();
+    lookAt(r.left + r.width / 2, r.top + r.height / 2);
+  }
+
+  window.addEventListener("pointermove", (e) => {
+    if (!demoRunning) lookAt(e.clientX, e.clientY);
+  });
+
+  bracey.addEventListener("click", () => setMood("happy"));
+
+  function blink() {
+    bracey.classList.add("is-blink");
+    setTimeout(() => bracey.classList.remove("is-blink"), 140);
+    setTimeout(blink, 2200 + Math.random() * 3000);
+  }
+  setTimeout(blink, 2000);
+
+  /* ---------- dropdown ---------- */
+  function openMenu() {
+    dropdown.classList.add("open");
+    trigger.setAttribute("aria-expanded", "true");
+    setMood("surprised", 1300);
+  }
+
+  function closeMenu() {
+    dropdown.classList.remove("open");
+    trigger.setAttribute("aria-expanded", "false");
+  }
+
+  function selectItem(item) {
+    items.forEach((i) => i.classList.remove("selected"));
+    item.classList.add("selected");
+    current.textContent = item.dataset.value;
+    closeMenu();
+    setMood(item.dataset.value === "Log out" ? "wave" : "happy", 1800);
+  }
+
+  trigger.addEventListener("click", () => {
+    dropdown.classList.contains("open") ? closeMenu() : openMenu();
+  });
+
+  items.forEach((item) => {
+    item.addEventListener("click", () => selectItem(item));
+    item.addEventListener("pointerenter", () => {
+      if (!demoRunning) lookAtElement(item);
+    });
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!dropdown.contains(e.target)) closeMenu();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeMenu();
+  });
+
+  /* ---------- hands-free demo for screen recording: add ?auto to the URL ---------- */
+  const targets = [2, 0, 3, 1];
+  let round = 0;
+
+  function press(button) {
+    button.classList.add("pressed");
+    setTimeout(() => button.classList.remove("pressed"), 220);
+  }
+
+  function runDemo() {
+    const target = targets[round % targets.length];
+    round += 1;
+
+    setTimeout(() => setMood("wave", 1500), 300);
+    setTimeout(() => { press(trigger); openMenu(); lookAtElement(trigger); }, 1900);
+
+    for (let k = 0; k <= target; k++) {
+      setTimeout(() => {
+        items.forEach((i) => i.classList.remove("hot"));
+        items[k].classList.add("hot");
+        lookAtElement(items[k]);
+      }, 3300 + k * 750);
+    }
+
+    setTimeout(() => {
+      items.forEach((i) => i.classList.remove("hot"));
+      selectItem(items[target]);
+    }, 3300 + target * 750 + 1000);
+  }
+
+  if (location.search.indexOf("auto") !== -1) {
+    demoRunning = true;
+    runDemo();
+    setInterval(runDemo, 10000);
+  } else {
+    setTimeout(() => setMood("wave", 1500), 600);
+  }
+</script>
+
+</body>
+</html>
